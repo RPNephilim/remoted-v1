@@ -1,0 +1,6 @@
+{
+    "serverBaseUrl": "http://localhost:1111/remoted/v1",
+    "loginPath": "/login",
+    "newAccountPath": "/createaccount",
+    "signalingServerUrl": "ws://localhost/remoted/v1/signaling"
+}
