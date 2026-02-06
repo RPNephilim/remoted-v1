@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import './css/Login.css';
 import properties from '../data/properties.json';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('')
     const [isNew, setIsNew] = useState(false);
+    const navigate = useNavigate();
 
     const validate = (event: string) => {
         switch (event) {
@@ -25,27 +27,29 @@ function Login() {
 
     const loginUser = async () => {
         try {
-            const isValidInput = validate('login');
-            if (!isValidInput) {
-                console.error("Invalid Input!!!");
-                return;
-            }
-            const payload = {
-                username: username,
-                password: password
-            }
-            const loginUrl = properties.serverBaseUrl + properties.loginPath
-            const response = await fetch(loginUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
+            // const isValidInput = validate('login');
+            // if (!isValidInput) {
+            //     console.error("Invalid Input!!!");
+            //     return;
+            // }
+            // const payload = {
+            //     username: username,
+            //     password: password
+            // }
+            // const loginUrl = properties.serverBaseUrl + properties.loginPath
+            // const response = await fetch(loginUrl, {
+            //     method: "POST",
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     },
+            //     body: JSON.stringify(payload)
+            // });
 
-            const responseBody = await response.json();
-            console.log(responseBody)
-            console.info("Successfully logged In");
+            // const responseBody = await response.json();
+            // console.log(responseBody)
+            // console.info("Successfully logged In");
+            
+            navigate('/devices');
         } catch (error) {
             console.error("Error while login user", error);
         }
