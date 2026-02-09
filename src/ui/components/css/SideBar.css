@@ -1,0 +1,11 @@
+.sidebar-div {
+    width: 6%;
+    height: 100%;
+    background-color: rgb(110, 110, 110);
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 20px;
+    padding-bottom: 2%;
+    box-sizing: border-box; 
+}

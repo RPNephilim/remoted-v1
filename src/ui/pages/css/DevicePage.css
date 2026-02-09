@@ -1,0 +1,32 @@
+.devicepage-div {
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+}
+.devicepage-content-div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+.devicesList-div {
+    box-sizing: border-box;
+    background-color: rgb(224, 224, 224);
+    width: 80%;
+    color: black;
+    padding: 2%;
+    margin: 5% 5% 5% 5%;
+    border-radius: 20px
+}
+#devices-table {
+    width: 100%;
+}
+td {
+    text-align: center;
+    vertical-align: center;
+}
+#device-tr:hover {
+    cursor: pointer;
+    background-color: rgb(129, 129, 129);
+}
