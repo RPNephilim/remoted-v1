@@ -30,3 +30,12 @@ td {
     cursor: pointer;
     background-color: rgb(129, 129, 129);
 }
+#deviceName-input {
+    width: 30%;
+    padding: 1%;
+    margin: 2% 0 2% 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 1.2em;
+    text-align: center;
+}

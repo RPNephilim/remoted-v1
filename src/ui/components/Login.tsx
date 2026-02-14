@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './css/Login.css';
 import properties from '../data/properties.json';
 import { useNavigate } from 'react-router-dom';
-import { getUser } from '../contexts/UserContext';
+// import { getUser } from '../contexts/UserContext';
 
 function Login() {
     const [email, setEmail] = useState('');
@@ -11,7 +11,7 @@ function Login() {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [isNew, setIsNew] = useState(false);
     const navigate = useNavigate();
-    const { updateUser } = getUser();
+    // const { updateUser } = getUser();
 
     const validate = (event: string) => {
         switch (event) {
@@ -30,33 +30,33 @@ function Login() {
 
     const loginUser = async () => {
         try {
-            const isValidInput = validate('login');
-            if (!isValidInput) {
-                console.error("Invalid Input!!!");
-                return;
-            }
-            const payload = {
-                username: username,
-                password: password
-            }
-            const loginUrl = properties.serverBaseUrl + properties.loginPath
-            const response = await fetch(loginUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
+            // const isValidInput = validate('login');
+            // if (!isValidInput) {
+            //     console.error("Invalid Input!!!");
+            //     return;
+            // }
+            // const payload = {
+            //     username: username,
+            //     password: password
+            // }
+            // const loginUrl = properties.serverBaseUrl + properties.loginPath
+            // const response = await fetch(loginUrl, {
+            //     method: "POST",
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     },
+            //     body: JSON.stringify(payload)
+            // });
 
-            const devices = await response.json();
-            console.log(devices)
-            console.info("Successfully logged In");
-            const user = {
-                username: username,
-                email: email,
-                devices: devices
-            }
-            updateUser(user);
+            // const devices = await response.json();
+            // console.log(devices)
+            // console.info("Successfully logged In");
+            // const user = {
+            //     username: username,
+            //     email: email,
+            //     devices: devices
+            // }
+            // updateUser(user);
             navigate('/devices');
         } catch (error) {
             console.error("Error while login user", error);
@@ -79,7 +79,7 @@ function Login() {
                 password: password
             }
             const createAccountUrl = properties.serverBaseUrl + properties.newAccountPath
-            const response = await fetch(createAccountUrl, {
+            await fetch(createAccountUrl, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
