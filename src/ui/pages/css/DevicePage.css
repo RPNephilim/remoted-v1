@@ -39,3 +39,18 @@ td {
     font-size: 1.2em;
     text-align: center;
 }
+
+.select-peer-device-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+
+}
+.buttons-div {
+    width: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10%;
+}

@@ -1,0 +1,17 @@
+.modeSelectPage-div {
+    box-sizing: border-box;
+    height: 100%;
+    display: flex;
+}
+.mode-select-content-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 5% auto auto auto;
+}
+.modes-div {
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    gap: 20%;
+}

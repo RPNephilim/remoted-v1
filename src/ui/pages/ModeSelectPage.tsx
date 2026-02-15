@@ -1,12 +1,31 @@
-import { getPeerConnection } from "../contexts/PeerConnectionContext"
+import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
+import AirplayRoundedIcon from '@mui/icons-material/AirplayRounded';
+import CastConnectedRoundedIcon from '@mui/icons-material/CastConnectedRounded';
+import SideBar from "../components/SideBar"
+import './css/ModeSelectPage.css'
+import { useNavigate } from "react-router-dom";
+import { getPeerConnection } from "../contexts/PeerConnectionContext";
 
+
+// Modes: Browse, Control, Cast
 function ModeSelectPage() {
-    const { userId, peerId } = getPeerConnection();
+    const navigate = useNavigate();
+    const { setConnectionMode } = getPeerConnection();
+    const switchMode = (mode: string) => {
+        setConnectionMode(mode)
+        navigate("/"+ mode);
+    }
     return (
-        <div className="modeSelect-div">
-            <h1>Mode Select Page</h1>
-            <p>User ID: {userId}</p>
-            <p>Peer ID: {peerId}</p>
+        <div className="modeSelectPage-div">
+            <SideBar />
+            <div className="mode-select-content-div">
+                <h1>SELECT MODE</h1>
+                <div className="modes-div">
+                    <FolderRoundedIcon fontSize="large" sx={{ cursor: 'pointer' }} onClick={() => switchMode("browse")}/>
+                    <AirplayRoundedIcon fontSize="large" sx={{ cursor: 'pointer' }} onClick={() => switchMode("control")}/>
+                    <CastConnectedRoundedIcon fontSize="large" sx={{ cursor: 'pointer' }} onClick={() => switchMode("cast")}/>
+                </div>
+            </div>
         </div>
     )
 }
