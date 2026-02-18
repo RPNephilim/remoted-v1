@@ -30,6 +30,9 @@ td {
     cursor: pointer;
     background-color: rgb(129, 129, 129);
 }
+#device-tr-selected {
+    background-color: rgb(129, 129, 129);
+}
 #deviceName-input {
     width: 30%;
     padding: 1%;

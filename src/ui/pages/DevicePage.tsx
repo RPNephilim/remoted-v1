@@ -5,20 +5,25 @@ import Button from '@mui/material/Button';
 import type { DeviceType } from "../contexts/UserContext";
 import { getPeerConnection } from "../contexts/PeerConnectionContext";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function DevicePage() {
   const { user } = getUser();
   const devices = user?.devices || [];
   const { userId, setUserId, peerId, setPeerId } = getPeerConnection();
+  const [ userDeviceSelected, setUserDeviceSelected ] = useState(false);
+  const [ peerDeviceSelected, setPeerDeviceSelected ] = useState(false);
   const navigate = useNavigate();
 
   const selectCurrentDevice = (device: DeviceType) => {
     setUserId(device["deviceName"]);
+    setUserDeviceSelected(true);
     console.log(`set userId to: ${device["deviceName"]}`)
   }
 
   const selectPeerDevice = (device: DeviceType) => {
     setPeerId(device["deviceName"])
+    setPeerDeviceSelected(true)
     console.log(`set peerId to: ${device["deviceName"]}`)
   }
 
@@ -47,7 +52,7 @@ function DevicePage() {
                     <th>Connected</th>
                   </tr>
                   {devices.map((device: any) => (
-                    <tr key={device["deviceName"]} id="device-tr" onClick={() => selectCurrentDevice(device)}>
+                    <tr key={device["deviceName"]} id={device["deviceName"] === userId ? "device-tr-selected" : "device-tr" } onClick={() => selectCurrentDevice(device)}>
                       <td>{device["deviceName"]}</td>
                       <td>{device["lastUsed"]}</td>
                       <td>{device["dateAdded"]}</td>
@@ -73,7 +78,7 @@ function DevicePage() {
                     <th>Connected</th>
                   </tr>
                   {devices.map((device: any) => (
-                    <tr key={device["deviceName"]} id="device-tr" onClick={() => selectPeerDevice(device)}>
+                    <tr key={device["deviceName"]} id={device["deviceName"] === peerId ? "device-tr-selected" : "device-tr"} onClick={() => selectPeerDevice(device)}>
                       <td>{device["deviceName"]}</td>
                       <td>{device["lastUsed"]}</td>
                       <td>{device["dateAdded"]}</td>
