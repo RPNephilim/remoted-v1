@@ -1,6 +1,13 @@
 import properties from '../data/properties.json';
 import { getPeerConnection } from '../contexts/PeerConnectionContext';
 
+
+declare global {
+    interface Window {
+        require: any;
+    }
+}
+
 class PeerConnection {
     private peerId: string;
     private userId: string;
@@ -57,18 +64,39 @@ class PeerConnection {
         }
     }
 
-    private establishBrowseConnection() {
+    private async establishBrowseConnection() {
         // Implement browse mode specific connection logic here
+        const { ipcRenderer } = window.require('electron');
+
+        await ipcRenderer.invoke('set-connection-mode', 'browse');
+        console.log('Set connection mode to browse in main process');
     }
 
-    private establishControlConnection() {
+    private async establishControlConnection() {
         // Implement control mode specific connection logic here
+
+        const { ipcRenderer } = window.require('electron');
+
+        await ipcRenderer.invoke('set-connection-mode', 'control');
+        console.log('Set connection mode to control in main process');
     }
 
     private async establishCastConnection() {
+
+        const { ipcRenderer } = window.require('electron');
+
+        await ipcRenderer.invoke('set-connection-mode', 'cast');
+        console.log('Set connection mode to cast in main process');
+
         // Implement cast mode specific connection logic here
         const displayMediaOptions = {
-
+            audio: true,
+            video: {
+                width: { ideal: 1920 },
+                height: { ideal: 1080 },
+                frameRate: { ideal: 60, max: 60 },
+                latency: 0
+            }
         }
 
         const { serverConnection, peerConnection, setLocalStream } = getPeerConnection();
@@ -105,21 +133,106 @@ class PeerConnection {
                 data: offer
             }
             serverConnection.send(JSON.stringify(payload));
-            console.log('Sent renegotiation offer')
+            console.log('Sent negotiation offer')
         }
 
     }
 
-    private async handleOffer(offer: string) {
+    private async handleOffer(message: any) {
+        console.log('Received offer:', message.data);
 
+        const { serverConnection, setPeerId, setPeerConnection, setRemoteStream, setDataChannel } = getPeerConnection();
+
+        // Initial offer - create new peer connection
+        console.log('Handling initial offer');
+
+        // Set the target peer ID to the peer who sent the offer
+        setPeerId(message.from);
+
+        const pc = new RTCPeerConnection(properties.configuration);
+        setPeerConnection(pc);
+
+        console.log('Created RTCPeerConnection for incoming offer');
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate && serverConnection) {
+                const response = {
+                    type: 'ice-candidate',
+                    from: this.userId,
+                    to: message.from,
+                    data: event.candidate
+                };
+                serverConnection.send(JSON.stringify(response));
+            }
+        };
+
+        pc.onconnectionstatechange = () => {
+            if (pc.connectionState === 'connected') {
+                // setStatus('Peers connected!');
+            }
+        };
+
+        pc.ontrack = (event) => {
+            setRemoteStream(event.streams[0]);
+        }
+
+        pc.ondatachannel = (event) => {
+            const dataChannel = event.channel;
+            dataChannel.onopen = () => {
+                console.log('Data channel is open');
+                setDataChannel(dataChannel);
+            };
+            dataChannel.onclose = () => {
+                console.warn('⚠️ Data channel CLOSED');
+            };
+            dataChannel.onerror = (error) => {
+                console.error('❌ Data channel ERROR:', error);
+            };
+            dataChannel.onmessage = (event) => {
+                console.log('[Responder] Received message:', event.data);
+            };
+        }
+
+        await pc.setRemoteDescription(new RTCSessionDescription(message.data));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        console.log('Created and set local description with answer');
+
+        // Send the answer back to the offering peer
+        console.log('Sending answer back to peer: ', message.from);
+        if (serverConnection) {
+            const response = {
+                type: 'answer',
+                from: this.userId,
+                to: message.from,
+                data: answer
+            };
+            serverConnection.send(JSON.stringify(response));
+        } else {
+            console.error('No connection to signaling server');
+        }
+        console.log('Sent answer back to offering peer');
     }
 
-    private async handleAnswer(answer: string) {
-
+    private async handleAnswer(message: any) {
+        const { peerConnection } = getPeerConnection();
+        console.log('Received answer:', message.data);
+        if (peerConnection) {
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
+        }
     }
 
-    private async handleIceCandidate(candidate: string) {
-
+    private async handleIceCandidate(message: any) {
+        const { peerConnection } = getPeerConnection();
+        console.log('Received ICE candidate:', message.data);
+        if (peerConnection && message.data) {
+            try {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(message.data));
+            } catch (e) {
+                console.error('Error adding received ice candidate', e);
+            }
+        }
     }
 }
 

@@ -5,25 +5,20 @@ import Button from '@mui/material/Button';
 import type { DeviceType } from "../contexts/UserContext";
 import { getPeerConnection } from "../contexts/PeerConnectionContext";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
 
 function DevicePage() {
   const { user } = getUser();
   const devices = user?.devices || [];
   const { userId, setUserId, peerId, setPeerId } = getPeerConnection();
-  const [ userDeviceSelected, setUserDeviceSelected ] = useState(false);
-  const [ peerDeviceSelected, setPeerDeviceSelected ] = useState(false);
   const navigate = useNavigate();
 
   const selectCurrentDevice = (device: DeviceType) => {
     setUserId(device["deviceName"]);
-    setUserDeviceSelected(true);
     console.log(`set userId to: ${device["deviceName"]}`)
   }
 
   const selectPeerDevice = (device: DeviceType) => {
     setPeerId(device["deviceName"])
-    setPeerDeviceSelected(true)
     console.log(`set peerId to: ${device["deviceName"]}`)
   }
 

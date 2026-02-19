@@ -8,13 +8,16 @@ export interface PeerConnectionContextType {
     peerConnection: RTCPeerConnection | null;
     localStream: MediaStream | null;
     remoteStream: MediaStream | null;
+    dataChannel: RTCDataChannel | null;
     setUserId: (id: string) => void;
     setPeerId: (id: string) => void;
     setConnectionMode: (mode: string) => void;
     setServerConnection: (connection: WebSocket | null) => void;
     setPeerConnection: (connection: RTCPeerConnection | null) => void;
+    setDataChannel: (channel: RTCDataChannel | null) => void;
     setLocalStream: (stream: MediaStream | null) => void;
     setRemoteStream: (stream: MediaStream | null) => void;
+
 }
 
 const PeerConnectionContext = createContext<PeerConnectionContextType | undefined>(undefined);
@@ -28,11 +31,12 @@ export const PeerConnectionProvider = ({ children }: { children: ReactNode }) =>
 
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
+    const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
 
     return (
         <PeerConnectionContext.Provider value={{
-            userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream,
-            setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream
+            userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
+            setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
         }}>
             {children}
         </PeerConnectionContext.Provider>
