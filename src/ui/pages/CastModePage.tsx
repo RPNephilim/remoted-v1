@@ -11,7 +11,14 @@ function CastModePage() {
 
     useEffect(() => {
         if (remoteVideoRef.current && remoteStream) {
+            console.log('Setting remote stream to video element:', remoteStream.id);
+            console.log('Remote stream tracks:', remoteStream.getTracks().map(t => `${t.kind}: ${t.enabled}`));
             remoteVideoRef.current.srcObject = remoteStream;
+            
+            // Try to play the video
+            remoteVideoRef.current.play().catch(err => {
+                console.error('Error playing video:', err);
+            });
         }
 
         return () => {
@@ -61,7 +68,15 @@ function CastModePage() {
                 {castRole === 'receiver' && remoteStream && (
                     <div>
                         <p>Receiving screen from remote peer</p>
-                        <video ref={remoteVideoRef} width={1280} height={720} autoPlay playsInline controls />
+                        <video 
+                            ref={remoteVideoRef} 
+                            width={1280} 
+                            height={720} 
+                            autoPlay 
+                            playsInline 
+                            muted
+                            controls 
+                        />
                     </div>
                 )}
                 

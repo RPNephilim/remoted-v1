@@ -220,6 +220,8 @@ const handleOffer = async (message: any, context: any) => {
     };
 
     peerConnection.ontrack = (event) => {
+        console.log('🎥 [handleOffer] Received remote track:', event.track.kind, 'from stream:', event.streams[0].id);
+        console.log('Stream track count:', event.streams[0].getTracks().length);
         setRemoteStream(event.streams[0]);
     }
 
