@@ -83,7 +83,7 @@ const establishControlConnection = async () => {
     console.log('Set connection mode to control in main process');
 }
 
-const establishCastConnection = async (context: any) => {
+export const establishCastConnection = async (context: any) => {
     const { userId, peerId, serverConnection, setRemoteStream, setPeerConnection } = context;
 
     await window.electronAPI.setConnectionMode('cast');
