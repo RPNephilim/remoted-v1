@@ -1,41 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePeerConnection } from "../contexts/PeerConnectionContext";
-import { establishCastConnection } from "../peerconnection/PeerConnectionService";
-import { Button } from "@mui/material";
 
 function CastModePage() {
-    const {
-        userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-        setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
-    } = usePeerConnection();
+    const context = usePeerConnection();
+    const { remoteStream } = context;
 
-    const isCastMode = connectionMode === "cast";
+    const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-    // Run peer connection establishment logic when the component mounts, but only if we're in Cast mode
     useEffect(() => {
-        if (!isCastMode) {
-            console.warn("Not in Cast mode, skipping peer connection establishment");
-            return;
+        if (remoteVideoRef.current && remoteStream) {
+            remoteVideoRef.current.srcObject = remoteStream;
         }
-    }, []);
 
-    const castMedia = async () => {
-        try {
-            await establishCastConnection({
-                userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-                setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
-            });
-            console.log(`Established peer connection for user ${userId} in Cast mode with peer ID ${peerId}`);
-        } catch (error) {
-            console.error('Failed to establish cast connection:', error);
+        return () => {
+            if (remoteVideoRef.current) {
+                remoteVideoRef.current.srcObject = null;
+            }
         }
-    }
+    }, [remoteStream]);
+
     return (
         <>
-            <div className="cast-mode-page-div">
+            {remoteStream && <div className="cast-mode-page-div">
                 <h1>Cast Page</h1>
-                <Button variant="contained" color="primary" onClick={() => castMedia()}>Choose Media to Cast</Button>
-            </div>
+                <video ref={remoteVideoRef} width={480} height={360} autoPlay playsInline controls />
+            </div>}
 
         </>
     )

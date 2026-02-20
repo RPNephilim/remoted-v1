@@ -11,17 +11,18 @@ declare global {
 
 // Establish a connection with the signaling server and register the user
 export const registerUser = (context: any) => {
-    const { userId, setServerConnection } = context;
+    const { setServerConnection } = context;
     const signalingServerUrl = properties.signalingServerUrl;
     const serverConnection = new WebSocket(signalingServerUrl);
 
     serverConnection.onopen = () => {
         console.log('Connected to signaling server');
-        
+        setServerConnection(serverConnection);
+        console.log('serverConnection updated with WebSocket connection');
         // Send a registration message to the signaling server with the user ID
         const registrationMessage = {
             type: 'register',
-            from: userId
+            from: context.userId
         };
         serverConnection.send(JSON.stringify(registrationMessage));
         console.log('Sent registration message to signaling server:', registrationMessage);
@@ -46,9 +47,6 @@ export const registerUser = (context: any) => {
         console.error('WebSocket error:', error);
     };
 
-
-    setServerConnection(serverConnection);
-    console.log('serverConnection updated with WebSocket connection');
 }
 
 export const establishPeerConnection = async (context: any) => {
@@ -92,7 +90,7 @@ const establishControlConnection = async () => {
 }
 
 export const establishCastConnection = async (context: any) => {
-    const { userId, peerId, serverConnection, setRemoteStream, setPeerConnection } = context;
+    const { setRemoteStream, setPeerConnection } = context;
 
     // Set Electron mode if available (non-blocking to preserve user gesture)
     if (window.electronAPI) {
@@ -118,14 +116,14 @@ export const establishCastConnection = async (context: any) => {
 
     const peerConnection = new RTCPeerConnection(properties.configuration);
     peerConnection.onicecandidate = (event) => {
-        if (event.candidate && serverConnection) {
+        if (event.candidate && context.serverConnection) {
           const message = {
             type: 'ice-candidate',
-            from: userId,
-            to: peerId,
+            from: context.userId,
+            to: context.peerId,
             data: event.candidate
           };
-          serverConnection.send(JSON.stringify(message));
+          context.serverConnection.send(JSON.stringify(message));
         }
     };
 
@@ -162,16 +160,16 @@ export const establishCastConnection = async (context: any) => {
 
     const offer = await peerConnection!.createOffer();
     await peerConnection!.setLocalDescription(offer);
-    console.log(`userId: ${userId}, peerId: ${peerId}`)
+    console.log(`userId: ${context.userId}, peerId: ${context.peerId}`)
 
-    if (serverConnection) {
+    if (context.serverConnection) {
         const payload = {
             type: 'offer',
-            from: userId,
-            to: peerId,
+            from: context.userId,
+            to: context.peerId,
             data: offer
         }
-        serverConnection.send(JSON.stringify(payload));
+        context.serverConnection.send(JSON.stringify(payload));
         console.log('Sent negotiation offer')
     }
 
@@ -207,6 +205,7 @@ const handleOffer = async (message: any, context: any) => {
     peerConnection.onconnectionstatechange = () => {
         if (peerConnection.connectionState === 'connected') {
             // setStatus('Peers connected!');
+            console.log('Peers connected!');
         }
     };
 
@@ -239,18 +238,19 @@ const handleOffer = async (message: any, context: any) => {
 
     // Send the answer back to the offering peer
     console.log('Sending answer back to peer: ', message.from);
-    if (serverConnection) {
+    if (context.serverConnection) {
         const payload = {
             type: 'answer',
-            from: userId,
+            from: context.userId,
             to: message.from,
             data: answer
         };
-        serverConnection.send(JSON.stringify(payload));
+        context.serverConnection.send(JSON.stringify(payload));
+        console.log('Sent answer back to offering peer');
     } else {
         console.error('No connection to signaling server');
     }
-    console.log('Sent answer back to offering peer');
+    
 }
 const handleAnswer = async (message: any, context: any) => {
     const { peerConnection } = context;

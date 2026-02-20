@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import type { DeviceType } from "../contexts/UserContext";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../peerconnection/PeerConnectionService";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePeerConnectionRef } from "../hooks/usePeerConnectionRef";
 
 function DevicePage() {
@@ -39,9 +39,17 @@ function DevicePage() {
     }
     navigate('/mode-select')
   }
+
+  useEffect(() => {
+    if (getContext().remoteStream) {
+      // console.log("Remote stream updated in DevicePage:", getContext().remoteStream);
+      navigate('/cast');
+    }
+  }, [getContext().remoteStream]);
+  
   return (
     <>
-      <div className="devicepage-div">
+      {<div className="devicepage-div">
         <SideBar />
         <div className="devicepage-content-div">
           <h1>{devices.length > 0 ? "Select Your Device" : "No Device Added"}</h1>
@@ -104,7 +112,7 @@ function DevicePage() {
 
         </div>
 
-      </div>
+      </div>}
     </>
   )
 }

@@ -10,7 +10,7 @@ app.on('ready', () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(app.getAppPath(), 'dist-electron/preload.js'),
     },
   }
   const mainWindow = new BrowserWindow(configuration);
