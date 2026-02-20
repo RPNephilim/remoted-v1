@@ -2,7 +2,7 @@ import properties from '../data/properties.json';
 
 declare global {
     interface Window {
-        electronAPI: {
+        electronAPI?: {
             setConnectionMode: (mode: string) => Promise<any>;
         };
     }
@@ -51,43 +51,70 @@ export const registerUser = (context: any) => {
     console.log('serverConnection updated with WebSocket connection');
 }
 
-export const establishPeerConnection = (context: any) => {
+export const establishPeerConnection = async (context: any) => {
     const { peerId, connectionMode } = context;
 
     console.log(`Establishing connection with peer ${peerId}, in mode ${connectionMode}`);
     switch (connectionMode) {
         case "browse":
             // Handle browse mode specific logic
-            establishBrowseConnection();
+            await establishBrowseConnection();
             break;
         case "control":
             // Handle control mode specific logic
-            establishControlConnection();
+            await establishControlConnection();
             break;
         case "cast":
             // Handle cast mode specific logic
-            establishCastConnection(context);
+            await establishCastConnection(context);
             break;
     }
 }
 
 const establishBrowseConnection = async () => {
     // Implement browse mode specific connection logic here
-    await window.electronAPI.setConnectionMode('browse');
-    console.log('Set connection mode to browse in main process');
+    if (window.electronAPI) {
+        await window.electronAPI.setConnectionMode('browse');
+        console.log('Set connection mode to browse in main process');
+    } else {
+        console.log('Running in browser mode - Electron API not available');
+    }
 }
 
 const establishControlConnection = async () => {
     // Implement control mode specific connection logic here
-    await window.electronAPI.setConnectionMode('control');
-    console.log('Set connection mode to control in main process');
+    if (window.electronAPI) {
+        await window.electronAPI.setConnectionMode('control');
+        console.log('Set connection mode to control in main process');
+    } else {
+        console.log('Running in browser mode - Electron API not available');
+    }
 }
 
 export const establishCastConnection = async (context: any) => {
     const { userId, peerId, serverConnection, setRemoteStream, setPeerConnection } = context;
 
-    await window.electronAPI.setConnectionMode('cast');
-    console.log('Set connection mode to cast in main process');
+    // Set Electron mode if available (non-blocking to preserve user gesture)
+    if (window.electronAPI) {
+        window.electronAPI.setConnectionMode('cast').then(() => {
+            console.log('Set connection mode to cast in main process');
+        });
+    } else {
+        console.log('Running in browser mode - Electron API not available');
+    }
+
+    // Call getDisplayMedia FIRST to preserve user gesture chain
+    const displayMediaOptions = {
+        audio: true,
+        video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 60, max: 60 },
+            latency: 0
+        }
+    }
+    const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+    console.log('User media selected');
 
     const peerConnection = new RTCPeerConnection(properties.configuration);
     peerConnection.onicecandidate = (event) => {
@@ -114,19 +141,6 @@ export const establishCastConnection = async (context: any) => {
     };
 
     setPeerConnection(peerConnection);
-
-    // Implement cast mode specific connection logic here
-    const displayMediaOptions = {
-        audio: true,
-        video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            frameRate: { ideal: 60, max: 60 },
-            latency: 0
-        }
-    }
-    const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
-    console.log('User media selected');
 
     // Add tracks with encoding parameters for better quality
     stream.getTracks().forEach(track => {

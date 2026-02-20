@@ -19,12 +19,16 @@ function CastModePage() {
         }
     }, []);
 
-    const castMedia = () => {
-        establishCastConnection({
-            userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-            setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
-        });
-        console.log(`Established peer connection for user ${userId} in Cast mode with peer ID ${peerId}`);
+    const castMedia = async () => {
+        try {
+            await establishCastConnection({
+                userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
+                setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
+            });
+            console.log(`Established peer connection for user ${userId} in Cast mode with peer ID ${peerId}`);
+        } catch (error) {
+            console.error('Failed to establish cast connection:', error);
+        }
     }
     return (
         <>
