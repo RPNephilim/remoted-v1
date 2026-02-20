@@ -14,26 +14,26 @@ function DevicePage() {
   const navigate = useNavigate();
   const [ connectWithAnotherDevice, setConnectWithAnotherDevice ] = useState(false);
   const {
-    userId, peerId, setUserId, setPeerId, getContext
+    peerId, setUserId, setPeerId, getContext
   } = usePeerConnectionRef();
 
   const selectCurrentDevice = (device: DeviceType) => {
     setUserId(device["deviceName"]);
-    console.log(`set userId to: ${device["deviceName"]}`)
+    console.log(`set userId to: ${getContext().userId}`)
     registerUser(getContext());
   }
 
   const selectPeerDevice = (device: DeviceType) => {
-    if (device["deviceName"] === userId) {
+    if (device["deviceName"] === getContext().userId) {
       console.log("Cannot select the same device as peer, please select different device")
       return
     }
     setPeerId(device["deviceName"])
-    console.log(`set peerId to: ${device["deviceName"]}`)
+    console.log(`set peerId to: ${getContext().peerId}`)
   }
 
   const switchToModeSelect = () => {
-    if (userId === peerId) {
+    if (getContext().userId === getContext().peerId) {
       console.log("Please select different peer to connect")
       return
     }
@@ -57,7 +57,7 @@ function DevicePage() {
                     <th>Connected</th>
                   </tr>
                   {devices.map((device: any) => (
-                    <tr key={device["deviceName"]} id={device["deviceName"] === userId ? "device-tr-selected" : "device-tr"} onClick={() => selectCurrentDevice(device)}>
+                    <tr key={device["deviceName"]} id={device["deviceName"] === getContext().userId ? "device-tr-selected" : "device-tr"} onClick={() => selectCurrentDevice(device)}>
                       <td>{device["deviceName"]}</td>
                       <td>{device["lastUsed"]}</td>
                       <td>{device["dateAdded"]}</td>
