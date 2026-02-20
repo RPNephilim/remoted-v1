@@ -3,10 +3,10 @@ import { getUser } from "../contexts/UserContext";
 import './css/DevicePage.css'
 import Button from '@mui/material/Button';
 import type { DeviceType } from "../contexts/UserContext";
-import { usePeerConnection } from "../contexts/PeerConnectionContext";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../peerconnection/PeerConnectionService";
 import { useState } from "react";
+import { usePeerConnectionRef } from "../hooks/usePeerConnectionRef";
 
 function DevicePage() {
   const { user } = getUser();
@@ -14,17 +14,13 @@ function DevicePage() {
   const navigate = useNavigate();
   const [ connectWithAnotherDevice, setConnectWithAnotherDevice ] = useState(false);
   const {
-    userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-    setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
-  } = usePeerConnection();
+    userId, peerId, setUserId, setPeerId, getContext
+  } = usePeerConnectionRef();
 
   const selectCurrentDevice = (device: DeviceType) => {
     setUserId(device["deviceName"]);
     console.log(`set userId to: ${device["deviceName"]}`)
-    registerUser({
-      userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-      setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
-    });
+    registerUser(getContext());
   }
 
   const selectPeerDevice = (device: DeviceType) => {
