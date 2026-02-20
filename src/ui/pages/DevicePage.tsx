@@ -3,21 +3,28 @@ import { getUser } from "../contexts/UserContext";
 import './css/DevicePage.css'
 import Button from '@mui/material/Button';
 import type { DeviceType } from "../contexts/UserContext";
-import { getPeerConnection } from "../contexts/PeerConnectionContext";
+import { usePeerConnection } from "../contexts/PeerConnectionContext";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../peerconnection/PeerConnectionService";
 
 function DevicePage() {
   const { user } = getUser();
   const devices = user?.devices || [];
-  const { userId, setUserId, peerId, setPeerId } = getPeerConnection();
+  const { userId, setUserId, peerId, setPeerId } = usePeerConnection();
   const navigate = useNavigate();
 
   const selectCurrentDevice = (device: DeviceType) => {
     setUserId(device["deviceName"]);
     console.log(`set userId to: ${device["deviceName"]}`)
+    registerUser(device["deviceName"]);
+    
   }
 
   const selectPeerDevice = (device: DeviceType) => {
+    if (device["deviceName"] === userId) {
+      console.log("Cannot select the same device as peer, please select different device")
+      return
+    }
     setPeerId(device["deviceName"])
     console.log(`set peerId to: ${device["deviceName"]}`)
   }
@@ -60,7 +67,7 @@ function DevicePage() {
               </table>
             </div>
           }
-          {devices.length > 0 && <div className="select-peer-device-div">
+          {userId !== '' && devices.length > 0 && <div className="select-peer-device-div">
             <h1>{devices.length > 1 ? "Select Peer Device" : "Add another device to Connect"}</h1>
             {devices.length > 1 && <div className="devicesList-div">
               <table id="devices-table">

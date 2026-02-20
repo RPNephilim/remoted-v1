@@ -4,13 +4,13 @@ import CastConnectedRoundedIcon from '@mui/icons-material/CastConnectedRounded';
 import SideBar from "../components/SideBar"
 import './css/ModeSelectPage.css'
 import { useNavigate } from "react-router-dom";
-import { getPeerConnection } from "../contexts/PeerConnectionContext";
+import { usePeerConnection } from "../contexts/PeerConnectionContext";
 
 
 // Modes: Browse, Control, Cast
 function ModeSelectPage() {
     const navigate = useNavigate();
-    const { setConnectionMode } = getPeerConnection();
+    const { setConnectionMode } = usePeerConnection();
     const switchMode = (mode: string) => {
         setConnectionMode(mode)
         navigate("/"+ mode);

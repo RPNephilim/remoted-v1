@@ -1,11 +1,10 @@
 import { useEffect } from "react";
-import { getPeerConnection } from "../contexts/PeerConnectionContext";
-import PeerConnection from "../peerconnection/PeerConnection";
+import { usePeerConnection } from "../contexts/PeerConnectionContext";
+import { establishPeerConnection } from "../peerconnection/PeerConnectionService";
 
 function ControlModePage() {
-    const { userId, peerId, connectionMode } = getPeerConnection();
+    const { userId, peerId, connectionMode } = usePeerConnection();
 
-    const peerConnection = new PeerConnection();
     const isControlMode = connectionMode === "control";
 
     useEffect(() => {
@@ -13,10 +12,8 @@ function ControlModePage() {
             console.warn("Not in control mode, skipping peer connection establishment");
             return;
         }
-        peerConnection.registerUser(userId);
-        console.log(`Registered user ${userId} with signaling server`);
 
-        peerConnection.establishPeerConnection(peerId, connectionMode);
+        establishPeerConnection(peerId, connectionMode);
         console.log(`Established peer connection for user ${userId} with peer ID ${peerId}`);
     }, []);
 

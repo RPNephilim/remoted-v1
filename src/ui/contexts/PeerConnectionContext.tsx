@@ -43,11 +43,10 @@ export const PeerConnectionProvider = ({ children }: { children: ReactNode }) =>
     )
 }
 
-export const getPeerConnection = () => {
+export const usePeerConnection = () => {
     const context = useContext(PeerConnectionContext);
-
     if (!context) {
-        throw new Error("getPeerConnection must be used within a PeerConnectionProvider");
+        throw new Error("usePeerConnection must be used within a PeerConnectionProvider");
     }
     return context;
 }
