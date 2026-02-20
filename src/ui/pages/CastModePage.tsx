@@ -13,12 +13,23 @@ function CastModePage() {
         if (remoteVideoRef.current && remoteStream) {
             console.log('Setting remote stream to video element:', remoteStream.id);
             console.log('Remote stream tracks:', remoteStream.getTracks().map(t => `${t.kind}: ${t.enabled}`));
-            remoteVideoRef.current.srcObject = remoteStream;
             
-            // Try to play the video
-            remoteVideoRef.current.play().catch(err => {
-                console.error('Error playing video:', err);
-            });
+            const videoElement = remoteVideoRef.current;
+            videoElement.srcObject = remoteStream;
+            
+            // Wait for metadata to load before playing
+            const handleLoadedMetadata = () => {
+                videoElement.play().catch(err => {
+                    console.error('Error playing video:', err);
+                });
+            };
+            
+            videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+            
+            return () => {
+                videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+                videoElement.srcObject = null;
+            };
         }
 
         return () => {
