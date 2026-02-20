@@ -2,7 +2,9 @@ import properties from '../data/properties.json';
 
 declare global {
     interface Window {
-        require: any;
+        electronAPI: {
+            setConnectionMode: (mode: string) => Promise<any>;
+        };
     }
 }
 
@@ -71,27 +73,20 @@ export const establishPeerConnection = (context: any) => {
 
 const establishBrowseConnection = async () => {
     // Implement browse mode specific connection logic here
-    const { ipcRenderer } = window.require('electron');
-
-    await ipcRenderer.invoke('set-connection-mode', 'browse');
+    await window.electronAPI.setConnectionMode('browse');
     console.log('Set connection mode to browse in main process');
 }
 
 const establishControlConnection = async () => {
     // Implement control mode specific connection logic here
-
-    const { ipcRenderer } = window.require('electron');
-
-    await ipcRenderer.invoke('set-connection-mode', 'control');
+    await window.electronAPI.setConnectionMode('control');
     console.log('Set connection mode to control in main process');
 }
 
 const establishCastConnection = async (context: any) => {
     const { userId, peerId, serverConnection, setRemoteStream, setPeerConnection } = context;
 
-    const { ipcRenderer } = window.require('electron');
-    
-    await ipcRenderer.invoke('set-connection-mode', 'cast');
+    await window.electronAPI.setConnectionMode('cast');
     console.log('Set connection mode to cast in main process');
 
     const peerConnection = new RTCPeerConnection(properties.configuration);

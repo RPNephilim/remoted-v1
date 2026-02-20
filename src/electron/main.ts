@@ -8,8 +8,9 @@ app.on('ready', () => {
     width: 1920,
     height: 1080,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   }
   const mainWindow = new BrowserWindow(configuration);
