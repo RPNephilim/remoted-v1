@@ -6,11 +6,13 @@ import type { DeviceType } from "../contexts/UserContext";
 import { usePeerConnection } from "../contexts/PeerConnectionContext";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../peerconnection/PeerConnectionService";
+import { useState } from "react";
 
 function DevicePage() {
   const { user } = getUser();
   const devices = user?.devices || [];
   const navigate = useNavigate();
+  const [ connectWithAnotherDevice, setConnectWithAnotherDevice ] = useState(false);
   const {
     userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
     setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
@@ -72,7 +74,7 @@ function DevicePage() {
               </table>
             </div>
           }
-          {userId !== '' && devices.length > 0 && <div className="select-peer-device-div">
+          {connectWithAnotherDevice && devices.length > 0 && <div className="select-peer-device-div">
             <h1>{devices.length > 1 ? "Select Peer Device" : "Add another device to Connect"}</h1>
             {devices.length > 1 && <div className="devicesList-div">
               <table id="devices-table">
@@ -100,7 +102,8 @@ function DevicePage() {
           </div>}
           <div className="buttons-div">
             <Button variant="contained">ADD DEVICE</Button>
-            <Button variant="contained" onClick={switchToModeSelect}>Select Mode</Button>
+            {!connectWithAnotherDevice && <Button variant="contained" onClick={() => setConnectWithAnotherDevice(true)}>CONNECT WITH ANOTHER DEVICE</Button>}
+            {connectWithAnotherDevice && <Button variant="contained" onClick={switchToModeSelect}>SELECT MODE</Button>}
           </div>
 
         </div>

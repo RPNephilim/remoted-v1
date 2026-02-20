@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePeerConnection } from "../contexts/PeerConnectionContext";
-import { establishPeerConnection } from "../peerconnection/PeerConnectionService";
+import { establishCastConnection } from "../peerconnection/PeerConnectionService";
 import { Button } from "@mui/material";
 
 function CastModePage() {
@@ -20,7 +20,7 @@ function CastModePage() {
     }, []);
 
     const castMedia = () => {
-        establishPeerConnection({
+        establishCastConnection({
             userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
             setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
         });
