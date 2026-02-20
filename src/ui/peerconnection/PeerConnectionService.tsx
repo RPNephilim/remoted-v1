@@ -33,11 +33,11 @@ export const registerUser = (context: any) => {
         console.log('Received message from signaling server:', response);
 
         if (response.type === 'offer') {
-            await handleOffer(response, context);
+            await handleOffer(response, { ...context, serverConnection });
         } else if (response.type === 'answer') {
-            await handleAnswer(response, context);
+            await handleAnswer(response, { ...context, serverConnection });
         } else if (response.type === 'ice-candidate') {
-            await handleIceCandidate(response, context);
+            await handleIceCandidate(response, { ...context, serverConnection });
         } else if (response.type === 'peer-registered') {
             console.log("Successfully registered Peer!!!");
         }

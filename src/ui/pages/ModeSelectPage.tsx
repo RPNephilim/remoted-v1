@@ -4,15 +4,14 @@ import CastConnectedRoundedIcon from '@mui/icons-material/CastConnectedRounded';
 import SideBar from "../components/SideBar"
 import './css/ModeSelectPage.css'
 import { useNavigate } from "react-router-dom";
-import { usePeerConnection } from "../contexts/PeerConnectionContext";
+import { usePeerConnectionRef } from "../hooks/usePeerConnectionRef";
 import { establishCastConnection } from '../peerconnection/PeerConnectionService';
 
 
 // Modes: Browse, Control, Cast
 function ModeSelectPage() {
     const navigate = useNavigate();
-    const context = usePeerConnection();
-    const { setConnectionMode } = context;
+    const { setConnectionMode, getContext } = usePeerConnectionRef();
     const switchMode = (mode: string) => {
         setConnectionMode(mode)
         navigate("/"+ mode);
@@ -20,10 +19,26 @@ function ModeSelectPage() {
 
     const castMedia = async () => {
         try {
-            await establishCastConnection(context);
-            console.log(`Established peer connection for user ${context.userId} in Cast mode with peer ID ${context.peerId}`);
-        } catch (error) {
+            setConnectionMode('cast');
+            // Get current context and override connectionMode to ensure it's 'cast'
+            const currentContext = { ...getContext(), connectionMode: 'cast' };
+            
+            // Check if browser supports getDisplayMedia
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                alert('Screen sharing is not supported in your browser');
+                return;
+            }
+            
+            await establishCastConnection(currentContext);
+            console.log(`Established peer connection in Cast mode`);
+            navigate("/cast");
+        } catch (error: any) {
             console.error('Failed to establish cast connection:', error);
+            if (error.name === 'NotAllowedError') {
+                alert('Screen sharing permission was denied. Please grant permission when prompted.');
+            } else {
+                alert(`Failed to start screen sharing: ${error.message}`);
+            }
         }
     }
     return (
