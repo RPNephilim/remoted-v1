@@ -12,22 +12,35 @@ function CastModePage() {
     useEffect(() => {
         if (remoteVideoRef.current && remoteStream) {
             console.log('Setting remote stream to video element:', remoteStream.id);
-            console.log('Remote stream tracks:', remoteStream.getTracks().map(t => `${t.kind}: ${t.enabled}`));
+            const tracks = remoteStream.getTracks();
+            console.log('Remote stream tracks:', tracks.map(t => ({
+                kind: t.kind,
+                enabled: t.enabled,
+                readyState: t.readyState,
+                muted: t.muted,
+                id: t.id
+            })));
             
             const videoElement = remoteVideoRef.current;
             videoElement.srcObject = remoteStream;
             
-            // Wait for metadata to load before playing
-            const handleLoadedMetadata = () => {
-                videoElement.play().catch(err => {
-                    console.error('Error playing video:', err);
-                });
-            };
+            // Add event listeners for debugging
+            videoElement.onloadstart = () => console.log('Video: loadstart');
+            videoElement.onloadedmetadata = () => console.log('Video: loadedmetadata', videoElement.videoWidth, 'x', videoElement.videoHeight);
+            videoElement.onloadeddata = () => console.log('Video: loadeddata');
+            videoElement.oncanplay = () => console.log('Video: canplay');
+            videoElement.onplay = () => console.log('Video: playing');
+            videoElement.onerror = (e) => console.error('Video error:', e);
+            videoElement.onstalled = () => console.warn('Video: stalled');
+            videoElement.onwaiting = () => console.warn('Video: waiting');
             
-            videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+            // Monitor connection state
+            if (peerConnection) {
+                console.log('PeerConnection state:', peerConnection.connectionState);
+                console.log('ICE connection state:', peerConnection.iceConnectionState);
+            }
             
             return () => {
-                videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
                 videoElement.srcObject = null;
             };
         }
@@ -37,7 +50,7 @@ function CastModePage() {
                 remoteVideoRef.current.srcObject = null;
             }
         }
-    }, [remoteStream]);
+    }, [remoteStream, peerConnection]);
 
     const stopCasting = () => {
         // Stop all tracks in local stream
