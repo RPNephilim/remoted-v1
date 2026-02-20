@@ -90,7 +90,7 @@ const establishControlConnection = async () => {
 }
 
 export const establishCastConnection = async (context: any) => {
-    const { setRemoteStream, setPeerConnection } = context;
+    const { setRemoteStream, setPeerConnection, setLocalStream } = context;
 
     // Set Electron mode if available (non-blocking to preserve user gesture)
     if (window.electronAPI) {
@@ -113,6 +113,9 @@ export const establishCastConnection = async (context: any) => {
     }
     const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
     console.log('User media selected');
+    
+    // Store the local stream so we can stop it later
+    setLocalStream(stream);
 
     const peerConnection = new RTCPeerConnection(properties.configuration);
     peerConnection.onicecandidate = (event) => {
@@ -177,13 +180,20 @@ export const establishCastConnection = async (context: any) => {
 const handleOffer = async (message: any, context: any) => {
     console.log('Received offer:', message.data);
 
-    const { userId, serverConnection, setPeerId, setPeerConnection, setRemoteStream, setDataChannel } = context;
+    const { userId, serverConnection, setPeerId, setPeerConnection, setRemoteStream, setDataChannel, setCastRole, setConnectionMode } = context;
 
     // Initial offer - create new peer connection
     console.log('Handling initial offer');
 
     // Set the target peer ID to the peer who sent the offer
     setPeerId(message.from);
+    
+    // Set role to receiver and mode to cast
+    setCastRole('receiver');
+    setConnectionMode('cast');
+    
+    // Navigate to cast page (using window location to trigger route change)
+    window.location.hash = '/cast';
 
     const peerConnection = new RTCPeerConnection(properties.configuration);
     setPeerConnection(peerConnection);

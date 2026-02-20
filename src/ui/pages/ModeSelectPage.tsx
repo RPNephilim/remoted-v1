@@ -29,6 +29,10 @@ function ModeSelectPage() {
                 return;
             }
             
+            // Set role to caster since this user is initiating
+            const { setCastRole } = getContext();
+            setCastRole('caster');
+            
             await establishCastConnection(currentContext);
             console.log(`Established peer connection in Cast mode`);
             navigate("/cast");

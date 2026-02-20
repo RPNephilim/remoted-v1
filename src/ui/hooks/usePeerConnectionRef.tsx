@@ -58,6 +58,11 @@ export const usePeerConnectionRef = () => {
     context.setRemoteStream(value);
   }, [context]);
 
+  const setCastRole = useCallback((value: 'caster' | 'receiver' | null) => {
+    contextRef.current = { ...contextRef.current, castRole: value };
+    context.setCastRole(value);
+  }, [context]);
+
   return {
     ...context,
     setUserId,
@@ -68,6 +73,7 @@ export const usePeerConnectionRef = () => {
     setDataChannel,
     setLocalStream,
     setRemoteStream,
+    setCastRole,
     getContext,
   };
 };

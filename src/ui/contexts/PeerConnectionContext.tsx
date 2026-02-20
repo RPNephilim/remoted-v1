@@ -4,6 +4,7 @@ export interface PeerConnectionContextType {
     userId: string;
     peerId: string;
     connectionMode: string;
+    castRole: 'caster' | 'receiver' | null;
     serverConnection: WebSocket | null;
     peerConnection: RTCPeerConnection | null;
     localStream: MediaStream | null;
@@ -12,6 +13,7 @@ export interface PeerConnectionContextType {
     setUserId: (id: string) => void;
     setPeerId: (id: string) => void;
     setConnectionMode: (mode: string) => void;
+    setCastRole: (role: 'caster' | 'receiver' | null) => void;
     setServerConnection: (connection: WebSocket | null) => void;
     setPeerConnection: (connection: RTCPeerConnection | null) => void;
     setDataChannel: (channel: RTCDataChannel | null) => void;
@@ -26,6 +28,7 @@ export const PeerConnectionProvider = ({ children }: { children: ReactNode }) =>
     const [userId, setUserId] = useState<string>('');
     const [peerId, setPeerId] = useState<string>('');
     const [connectionMode, setConnectionMode] = useState<string>('');
+    const [castRole, setCastRole] = useState<'caster' | 'receiver' | null>(null);
     const [serverConnection, setServerConnection] = useState<WebSocket | null>(null);
     const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
 
@@ -35,8 +38,8 @@ export const PeerConnectionProvider = ({ children }: { children: ReactNode }) =>
 
     return (
         <PeerConnectionContext.Provider value={{
-            userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-            setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
+            userId, peerId, connectionMode, castRole, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
+            setUserId, setPeerId, setConnectionMode, setCastRole, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
         }}>
             {children}
         </PeerConnectionContext.Provider>
