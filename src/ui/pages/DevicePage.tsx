@@ -10,14 +10,19 @@ import { registerUser } from "../peerconnection/PeerConnectionService";
 function DevicePage() {
   const { user } = getUser();
   const devices = user?.devices || [];
-  const { userId, setUserId, peerId, setPeerId } = usePeerConnection();
   const navigate = useNavigate();
+  const {
+    userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
+    setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
+  } = usePeerConnection();
 
   const selectCurrentDevice = (device: DeviceType) => {
     setUserId(device["deviceName"]);
     console.log(`set userId to: ${device["deviceName"]}`)
-    registerUser(device["deviceName"]);
-    
+    registerUser({
+      userId, peerId, connectionMode, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
+      setUserId, setPeerId, setConnectionMode, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
+    });
   }
 
   const selectPeerDevice = (device: DeviceType) => {
@@ -29,7 +34,7 @@ function DevicePage() {
     console.log(`set peerId to: ${device["deviceName"]}`)
   }
 
-  const connectWithPeer = () => {
+  const switchToModeSelect = () => {
     if (userId === peerId) {
       console.log("Please select different peer to connect")
       return
@@ -54,7 +59,7 @@ function DevicePage() {
                     <th>Connected</th>
                   </tr>
                   {devices.map((device: any) => (
-                    <tr key={device["deviceName"]} id={device["deviceName"] === userId ? "device-tr-selected" : "device-tr" } onClick={() => selectCurrentDevice(device)}>
+                    <tr key={device["deviceName"]} id={device["deviceName"] === userId ? "device-tr-selected" : "device-tr"} onClick={() => selectCurrentDevice(device)}>
                       <td>{device["deviceName"]}</td>
                       <td>{device["lastUsed"]}</td>
                       <td>{device["dateAdded"]}</td>
@@ -95,7 +100,7 @@ function DevicePage() {
           </div>}
           <div className="buttons-div">
             <Button variant="contained">ADD DEVICE</Button>
-            <Button variant="contained" onClick={connectWithPeer}>Connect</Button>
+            <Button variant="contained" onClick={switchToModeSelect}>Select Mode</Button>
           </div>
 
         </div>

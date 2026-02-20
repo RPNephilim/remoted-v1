@@ -1,6 +1,4 @@
 import properties from '../data/properties.json';
-import { usePeerConnection } from '../contexts/PeerConnectionContext';
-
 
 declare global {
     interface Window {
@@ -8,13 +6,23 @@ declare global {
     }
 }
 
+
 // Establish a connection with the signaling server and register the user
-export const registerUser = (userId: string) => {
+export const registerUser = (context: any) => {
+    const { userId, setServerConnection } = context;
     const signalingServerUrl = properties.signalingServerUrl;
     const serverConnection = new WebSocket(signalingServerUrl);
 
     serverConnection.onopen = () => {
         console.log('Connected to signaling server');
+        
+        // Send a registration message to the signaling server with the user ID
+        const registrationMessage = {
+            type: 'register',
+            from: userId
+        };
+        serverConnection.send(JSON.stringify(registrationMessage));
+        console.log('Sent registration message to signaling server:', registrationMessage);
     };
 
     serverConnection.onmessage = async (message) => {
@@ -22,11 +30,11 @@ export const registerUser = (userId: string) => {
         console.log('Received message from signaling server:', response);
 
         if (response.type === 'offer') {
-            await handleOffer(response);
+            await handleOffer(response, context);
         } else if (response.type === 'answer') {
-            await handleAnswer(response);
+            await handleAnswer(response, context);
         } else if (response.type === 'ice-candidate') {
-            await handleIceCandidate(response);
+            await handleIceCandidate(response, context);
         } else if (response.type === 'peer-registered') {
             console.log("Successfully registered Peer!!!");
         }
@@ -36,20 +44,14 @@ export const registerUser = (userId: string) => {
         console.error('WebSocket error:', error);
     };
 
-    const { setServerConnection } = usePeerConnection();
-    setServerConnection(serverConnection);
-    console.log('PeerConnectionContext serverConnection updated with WebSocket connection');
 
-    // Send a registration message to the signaling server with the user ID
-    const registrationMessage = {
-        type: 'register',
-        from: userId
-    };
-    serverConnection.send(JSON.stringify(registrationMessage));
-    console.log('Sent registration message to signaling server:', registrationMessage);
+    setServerConnection(serverConnection);
+    console.log('serverConnection updated with WebSocket connection');
 }
 
-export const establishPeerConnection = (peerId: string, connectionMode: string) => {
+export const establishPeerConnection = (context: any) => {
+    const { peerId, connectionMode } = context;
+
     console.log(`Establishing connection with peer ${peerId}, in mode ${connectionMode}`);
     switch (connectionMode) {
         case "browse":
@@ -62,7 +64,7 @@ export const establishPeerConnection = (peerId: string, connectionMode: string) 
             break;
         case "cast":
             // Handle cast mode specific logic
-            establishCastConnection();
+            establishCastConnection(context);
             break;
     }
 }
@@ -84,13 +86,39 @@ const establishControlConnection = async () => {
     console.log('Set connection mode to control in main process');
 }
 
-const establishCastConnection = async () => {
+const establishCastConnection = async (context: any) => {
+    const { userId, peerId, serverConnection, setRemoteStream, setPeerConnection } = context;
 
     const { ipcRenderer } = window.require('electron');
-    const { userId, peerId } = usePeerConnection();
-
+    
     await ipcRenderer.invoke('set-connection-mode', 'cast');
     console.log('Set connection mode to cast in main process');
+
+    const peerConnection = new RTCPeerConnection(properties.configuration);
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate && serverConnection) {
+          const message = {
+            type: 'ice-candidate',
+            from: userId,
+            to: peerId,
+            data: event.candidate
+          };
+          serverConnection.send(JSON.stringify(message));
+        }
+    };
+
+    peerConnection.onconnectionstatechange = () => {
+      if (peerConnection.connectionState === 'connected') {
+        console.log('Peers connected!');
+      }
+    };
+
+    peerConnection.ontrack = (event) => {
+      console.log('🎥 [connectWithPeer] Received remote track:', event.track.kind, 'from stream:', event.streams[0].id);
+      setRemoteStream(event.streams[0]);
+    };
+
+    setPeerConnection(peerConnection);
 
     // Implement cast mode specific connection logic here
     const displayMediaOptions = {
@@ -102,8 +130,6 @@ const establishCastConnection = async () => {
             latency: 0
         }
     }
-
-    const { serverConnection, peerConnection, setLocalStream } = usePeerConnection();
     const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
     console.log('User media selected');
 
@@ -113,6 +139,7 @@ const establishCastConnection = async () => {
 
         // Configure encoding parameters for video tracks
         if (track.kind === 'video') {
+            (track as any).contentHint = 'motion'; // Hint for screen sharing
             const params = sender.getParameters();
             if (!params.encodings) {
                 params.encodings = [{}];
@@ -122,8 +149,7 @@ const establishCastConnection = async () => {
             params.encodings[0].maxFramerate = 60;
             sender.setParameters(params).catch(err => console.error('Error setting encoding params:', err));
         }
-    })
-    setLocalStream(stream);
+    });
 
     const offer = await peerConnection!.createOffer();
     await peerConnection!.setLocalDescription(offer);
@@ -141,11 +167,10 @@ const establishCastConnection = async () => {
     }
 
 }
-const handleOffer = async (message: any) => {
+const handleOffer = async (message: any, context: any) => {
     console.log('Received offer:', message.data);
-    const { userId } = usePeerConnection();
 
-    const { serverConnection, setPeerId, setPeerConnection, setRemoteStream, setDataChannel } = usePeerConnection();
+    const { userId, serverConnection, setPeerId, setPeerConnection, setRemoteStream, setDataChannel } = context;
 
     // Initial offer - create new peer connection
     console.log('Handling initial offer');
@@ -153,12 +178,12 @@ const handleOffer = async (message: any) => {
     // Set the target peer ID to the peer who sent the offer
     setPeerId(message.from);
 
-    const pc = new RTCPeerConnection(properties.configuration);
-    setPeerConnection(pc);
+    const peerConnection = new RTCPeerConnection(properties.configuration);
+    setPeerConnection(peerConnection);
 
     console.log('Created RTCPeerConnection for incoming offer');
 
-    pc.onicecandidate = (event) => {
+    peerConnection.onicecandidate = (event) => {
         if (event.candidate && serverConnection) {
             const response = {
                 type: 'ice-candidate',
@@ -170,17 +195,17 @@ const handleOffer = async (message: any) => {
         }
     };
 
-    pc.onconnectionstatechange = () => {
-        if (pc.connectionState === 'connected') {
+    peerConnection.onconnectionstatechange = () => {
+        if (peerConnection.connectionState === 'connected') {
             // setStatus('Peers connected!');
         }
     };
 
-    pc.ontrack = (event) => {
+    peerConnection.ontrack = (event) => {
         setRemoteStream(event.streams[0]);
     }
 
-    pc.ondatachannel = (event) => {
+    peerConnection.ondatachannel = (event) => {
         const dataChannel = event.channel;
         dataChannel.onopen = () => {
             console.log('Data channel is open');
@@ -197,37 +222,37 @@ const handleOffer = async (message: any) => {
         };
     }
 
-    await pc.setRemoteDescription(new RTCSessionDescription(message.data));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
 
     console.log('Created and set local description with answer');
 
     // Send the answer back to the offering peer
     console.log('Sending answer back to peer: ', message.from);
     if (serverConnection) {
-        const response = {
+        const payload = {
             type: 'answer',
             from: userId,
             to: message.from,
             data: answer
         };
-        serverConnection.send(JSON.stringify(response));
+        serverConnection.send(JSON.stringify(payload));
     } else {
         console.error('No connection to signaling server');
     }
     console.log('Sent answer back to offering peer');
 }
-const handleAnswer = async (message: any) => {
-    const { peerConnection } = usePeerConnection();
+const handleAnswer = async (message: any, context: any) => {
+    const { peerConnection } = context;
     console.log('Received answer:', message.data);
     if (peerConnection) {
         await peerConnection.setRemoteDescription(new RTCSessionDescription(message.data));
     }
 }
 
-const handleIceCandidate = async (message: any) => {
-    const { peerConnection } = usePeerConnection();
+const handleIceCandidate = async (message: any, context: any) => {
+    const { peerConnection } = context;
     console.log('Received ICE candidate:', message.data);
     if (peerConnection && message.data) {
         try {
