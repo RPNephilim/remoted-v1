@@ -1,55 +1,72 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useEffect, useRef, useState, useCallback, type ReactNode } from 'react';
 
-export interface PeerConnectionContextType {
+// 1. Separate the Data Interface from the Setters for clarity
+export interface ConnectionData {
     userId: string;
     peerId: string;
     connectionMode: string;
-    castRole: 'caster' | 'receiver' | null;
     serverConnection: WebSocket | null;
     peerConnection: RTCPeerConnection | null;
     localStream: MediaStream | null;
     remoteStream: MediaStream | null;
     dataChannel: RTCDataChannel | null;
-    setUserId: (id: string) => void;
-    setPeerId: (id: string) => void;
-    setConnectionMode: (mode: string) => void;
-    setCastRole: (role: 'caster' | 'receiver' | null) => void;
-    setServerConnection: (connection: WebSocket | null) => void;
-    setPeerConnection: (connection: RTCPeerConnection | null) => void;
-    setDataChannel: (channel: RTCDataChannel | null) => void;
-    setLocalStream: (stream: MediaStream | null) => void;
-    setRemoteStream: (stream: MediaStream | null) => void;
+    connectionState?: string; // Optional for tracking connection status
+}
 
+export interface PeerConnectionContextType {
+    connection: ConnectionData;
+    updateConnection: (updates: Partial<ConnectionData>) => void;
+    getConnection: () => ConnectionData;
 }
 
 const PeerConnectionContext = createContext<PeerConnectionContextType | undefined>(undefined);
 
-export const PeerConnectionProvider = ({ children }: { children: ReactNode }) => {
-    const [userId, setUserId] = useState<string>('');
-    const [peerId, setPeerId] = useState<string>('');
-    const [connectionMode, setConnectionMode] = useState<string>('');
-    const [castRole, setCastRole] = useState<'caster' | 'receiver' | null>(null);
-    const [serverConnection, setServerConnection] = useState<WebSocket | null>(null);
-    const [peerConnection, setPeerConnection] = useState<RTCPeerConnection | null>(null);
+// Default initial state
+const initialData: ConnectionData = {
+    userId: '',
+    peerId: '',
+    connectionMode: '',
+    serverConnection: null,
+    peerConnection: null,
+    localStream: null,
+    remoteStream: null,
+    dataChannel: null,
+    connectionState: '',
+};
 
-    const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-    const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-    const [dataChannel, setDataChannel] = useState<RTCDataChannel | null>(null);
+const PeerConnectionProvider = ({ children }: { children: ReactNode }) => {
+    // Single state object for the connection data
+    const [connection, setConnection] = useState<ConnectionData>(initialData);
+    
+    // The Ref used for synchronous access (prevents stale values in WebRTC callbacks)
+    const connectionRef = useRef<ConnectionData>(connection);
+
+    // Keep the ref in sync with state for standard React renders
+    useEffect(() => {
+        connectionRef.current = connection;
+    }, [connection]);
+
+    /**
+     * Updates both Ref (synchronously) and State (asynchronously for UI).
+     * Using useCallback to prevent unnecessary re-renders of components using this function.
+     */
+    const updateConnection = useCallback((updates: Partial<ConnectionData>) => {
+        // 1. Update Ref immediately so getConnection() is never stale
+        const nextValue = { ...connectionRef.current, ...updates };
+        connectionRef.current = nextValue;
+
+        // 2. Trigger React re-render
+        setConnection(prev => ({ ...prev, ...updates }));
+    }, []);
+
+    // Stable function to always return the latest ref value
+    const getConnection = useCallback(() => connectionRef.current, []);
 
     return (
-        <PeerConnectionContext.Provider value={{
-            userId, peerId, connectionMode, castRole, serverConnection, peerConnection, localStream, remoteStream, dataChannel,
-            setUserId, setPeerId, setConnectionMode, setCastRole, setServerConnection, setPeerConnection, setLocalStream, setRemoteStream, setDataChannel
-        }}>
+        <PeerConnectionContext.Provider value={{ connection, updateConnection, getConnection }}>
             {children}
         </PeerConnectionContext.Provider>
-    )
-}
+    );
+};
 
-export const usePeerConnection = () => {
-    const context = useContext(PeerConnectionContext);
-    if (!context) {
-        throw new Error("usePeerConnection must be used within a PeerConnectionProvider");
-    }
-    return context;
-}
+export { PeerConnectionContext, PeerConnectionProvider };

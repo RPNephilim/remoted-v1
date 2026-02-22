@@ -1,40 +1,18 @@
-import { useState } from 'react';
+// import { useContext, useState } from 'react';
 import './css/Login.css';
-import properties from '../data/properties.json';
+// import properties from '../data/properties.json';
 import { useNavigate } from 'react-router-dom';
-// import { getUser } from '../contexts/UserContext';
+// import { UserContext } from '../contexts/UserContext';
+import { Button, TextField } from '@mui/material';
 
-function Login() {
-    const [email, setEmail] = useState('');
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [isNew, setIsNew] = useState(false);
+function Login(props: any) {
+    // const [username, setUsername] = useState('');
+    // const [password, setPassword] = useState('');
     const navigate = useNavigate();
-    // const { updateUser } = getUser();
-
-    const validate = (event: string) => {
-        switch (event) {
-            case 'login':
-                return true;
-            case 'new-account':
-                if (confirmPassword !== password) {
-                    console.error("Password do not match!!!");
-                    return false;
-                }
-                return true;
-            default:
-                return false;
-        }
-    }
+    // const { updateUser } = useContext(UserContext)!;
 
     const loginUser = async () => {
         try {
-            // const isValidInput = validate('login');
-            // if (!isValidInput) {
-            //     console.error("Invalid Input!!!");
-            //     return;
-            // }
             // const payload = {
             //     username: username,
             //     password: password
@@ -53,69 +31,48 @@ function Login() {
             // console.info("Successfully logged In");
             // const user = {
             //     username: username,
-            //     email: email,
             //     devices: devices
             // }
             // updateUser(user);
-            navigate('/devices');
+            navigate('/device-select');
         } catch (error) {
             console.error("Error while login user", error);
         }
     }
-
-    const switchCreateAccount = () => {
-        setIsNew(!isNew);
-    }
-    const createAccount = async () => {
-        try {
-            const isValidInput = validate('new-account');
-            if (!isValidInput) {
-                console.error("Invalid Input!!!");
-                return;
-            }
-            const payload = {
-                email: email,
-                username: username,
-                password: password
-            }
-            const createAccountUrl = properties.serverBaseUrl + properties.newAccountPath
-            await fetch(createAccountUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-            console.info("Successfully Created Account");
-        } catch (error) {
-            console.error("Error while creating account", error);
-        }
-    }
     return (
-        <>
-            {
-                !isNew &&
-                <div className="login">
-                    <input type='text' id='username' onChange={(e) => setUsername(e.target.value)} placeholder='username' />
-                    <input type='password' id='password' onChange={(e) => setPassword(e.target.value)} placeholder='password' />
-                    <button onClick={loginUser}>Login</button>
-                    <p>Create a new account?</p>
-                    <button onClick={switchCreateAccount}>Create Account</button>
-                </div>
-            }
-            {
-                isNew &&
-                <div className='createAccount'>
-                    <input type='text' id='email' onChange={(e) => setEmail(e.target.value)} placeholder='Email Id' />
-                    <input type='text' id='username' onChange={(e) => setUsername(e.target.value)} placeholder='Username' />
-                    <input type='password' id='password' onChange={(e) => setPassword(e.target.value)} placeholder='Password' />
-                    <input type='password' id='confirmPassword' onChange={(e) => setConfirmPassword(e.target.value)} placeholder='Confirm Password' />
-                    <button onClick={createAccount}>Create Account</button>
-                    <button onClick={switchCreateAccount}>Back</button>
-                </div>
-            }
-
-        </>
+        <div className="login-div">
+            {/* <TextField id="username" label="Username" variant="standard" onChange={(e) => setUsername(e.target.value)}
+                sx={{
+                    width: '10%',
+                    '& .MuiInputLabel-root': { color: '#ffffff' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#ffffff' },
+                    '& .MuiInputBase-input': { color: '#ffffff' },
+                    '& .MuiInput-underline:before': { borderBottomColor: '#ffffff' },
+                    '& .MuiInput-underline:after': { borderBottomColor: '#ffffff' },
+                }} /><br /> */}
+            <TextField
+                id="password"
+                label="Password"
+                type="password"
+                autoComplete="current-password"
+                variant="standard"
+                // onChange={(e) => setPassword(e.target.value)}
+                sx={{
+                    width: '10%',
+                    '& .MuiInputLabel-root': { color: '#ffffff' },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#ffffff' },
+                    '& .MuiInputBase-input': { color: '#ffffff' },
+                    '& .MuiInput-underline:before': { borderBottomColor: '#ffffff' },
+                    '& .MuiInput-underline:after': { borderBottomColor: '#ffffff' },
+                }}
+            /> <br />
+            <Button variant="contained" onClick={loginUser} sx={{
+                width: '5%'
+            }}>Login</Button> <br />
+            <Button variant="contained" onClick={() => props.setIsLogin(false)} sx={{
+                width: '5%'
+            }}>Sign Up</Button>
+        </div>
     )
 }
 

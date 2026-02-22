@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
 export interface DeviceType {
     deviceName: string;
@@ -14,11 +14,12 @@ export interface UserContextType {
         devices: DeviceType[]
     } | null;
     updateUser: (newUser: UserContextType["user"]) => void;
+    getUser: () => UserContextType["user"] | null;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider = ({ children }: { children: ReactNode }) => {
+const UserProvider = ({ children }: { children: ReactNode }) => {
     // const [user, setUser] = useState<UserContextType["user"] | null>(null);
     const [user, setUser] = useState<UserContextType["user"] | null>({
         username: 'user1',
@@ -38,24 +39,30 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         }]
     });
 
+    const userRef = useRef(user);
+
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
+
+    
+
     const updateUser = (newUser: UserContextType["user"]) => {
+        userRef.current = newUser;
         setUser(newUser);
-        console.log("Updated user data: " + { newUser })
+        console.log("Updated user data: ", newUser);
+    }
+
+    const getUser = () => {
+        return userRef.current;
     }
 
     return (
-        <UserContext.Provider value={{ user, updateUser }}>
+        <UserContext.Provider value={{ user, updateUser, getUser }}>
             {children}
         </UserContext.Provider>
     )
 }
 
-export const getUser = () => {
-    const context = useContext(UserContext);
-
-    if (!context) {
-        throw new Error("getUser must be used within a UserProvider");
-    }
-    return context;
-}
+export { UserContext, UserProvider };
 

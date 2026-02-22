@@ -1,13 +1,10 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import './App.css'
-import HomePage from './pages/HomePage'
-import DevicePage from './pages/DevicePage'
 import { UserProvider } from './contexts/UserContext';
 import { PeerConnectionProvider } from './contexts/PeerConnectionContext';
-import ModeSelectPage from './pages/ModeSelectPage';
-import BrowseModePage from './pages/BrowseModePage';
-import ControlModePage from './pages/ControlModePage';
-import CastModePage from './pages/CastModePage';
+import AuthenticationPage from './pages/AuthenticationPage';
+import SessionDeviceSelectPage from './pages/SessionDeviceSelectPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
 
@@ -17,12 +14,9 @@ function App() {
       <PeerConnectionProvider>
         <HashRouter>
           <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path='/devices' element={<DevicePage />} />
-            <Route path='/mode-select' element={<ModeSelectPage />} />
-            <Route path='/browse' element={<BrowseModePage/>}/>
-            <Route path='/control' element={<ControlModePage/>} />
-            <Route path='/cast' element={<CastModePage/>} />
+            <Route path="/" element={<AuthenticationPage />} />
+            <Route path='/device-select' element={<SessionDeviceSelectPage />} />
+            <Route path='/dashboard' element={<DashboardPage />} />
           </Routes>
         </HashRouter>
       </PeerConnectionProvider>
