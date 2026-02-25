@@ -2,7 +2,7 @@
     "serverBaseUrl": "http://localhost:1111/remoted/v1",
     "loginPath": "/login",
     "newAccountPath": "/createaccount",
-    "signalingServerUrl": "ws://192.168.1.101:1111/remoted/v1/signaling",
+    "signalingServerUrl": "wss://10.220.79.20:8443/remoted/v1/signaling",
     "configuration": {
         "iceServers": []
     }
