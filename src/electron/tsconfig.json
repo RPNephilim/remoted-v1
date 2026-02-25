@@ -2,7 +2,8 @@
     "compilerOptions": {
         "strict": true,
         "target": "esnext",
-        "module": "nodenext",
+        "module": "commonjs",
+        "esModuleInterop": true,
         "outDir": "../../dist-electron",
         "skipLibCheck": true
     }
